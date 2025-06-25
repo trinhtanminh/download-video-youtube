@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình Tải Video | Minh Tech</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Hide scrollbars from background */
+        }
+
+        /* Animated Gradient Background */
+        .animated-gradient {
+            background: linear-gradient(45deg, #0f0c29, #302b63, #24243e, #1a237e);
+            background-size: 400% 400%;
+            animation: gradient-animation 15s ease infinite;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glassmorphism Container */
+        .glass-container {
+            background: rgba(255, 255, 255, 0.05);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fade-in-up 0.8s ease-out forwards;
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Custom scrollbar */
+        .results-table-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .results-table-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .results-table-container::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        /* Button & Input Styles */
+        .main-btn {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .main-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        .url-input:focus {
+             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+
+        /* New Loader */
+        .pulsing-loader {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #4A90E2;
+            animation: pulse 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+            box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7);
+        }
+
+        @keyframes pulse {
+            to {
+                box-shadow: 0 0 0 45px rgba(74, 144, 226, 0);
+            }
+        }
+        
+        /* Animation for results appearing */
+        #results.visible {
+            animation: fade-in-up 0.6s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div class="animated-gradient"></div>
+
+    <main class="w-full max-w-2xl glass-container rounded-2xl shadow-2xl p-6 md:p-8 space-y-8">
+        <!-- Header & Language Switcher -->
+        <header class="flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-black text-white" data-lang-key="title">Trình Tải Video</h1>
+                <p class="text-gray-300" data-lang-key="subtitle">Dán link YouTube hoặc Facebook vào đây</p>
+            </div>
+            <div class="flex items-center bg-gray-900/50 rounded-full p-1 border border-gray-700">
+                <button onclick="switchLanguage('vi')" class="lang-btn vi-btn rounded-full px-3 py-1 text-sm font-semibold transition-colors duration-300">VI</button>
+                <button onclick="switchLanguage('en')" class="lang-btn en-btn rounded-full px-3 py-1 text-sm font-semibold transition-colors duration-300">EN</button>
+            </div>
+        </header>
+
+        <!-- Input Form -->
+        <form id="video-form" class="space-y-4">
+            <div class="relative">
+                <input type="url" id="video-url" placeholder="https://www.youtube.com/watch?v=..." class="url-input w-full bg-gray-900/50 border border-gray-600 text-white rounded-lg p-4 pr-12 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow duration-300" required>
+                <svg class="w-6 h-6 absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                </svg>
+            </div>
+            <button type="submit" id="submit-btn" class="main-btn w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                <span data-lang-key="buttonText">Lấy thông tin video</span>
+            </button>
+        </form>
+
+        <!-- Loader -->
+        <div id="loader" class="hidden flex justify-center py-8">
+            <div class="pulsing-loader"></div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="hidden bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-lg" role="alert">
+            <strong class="font-bold" data-lang-key="errorTitle">Lỗi! </strong>
+            <span id="error-text" class="block sm:inline"></span>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="hidden opacity-0 space-y-4">
+            <div class="flex flex-col md:flex-row gap-4 items-center bg-black/20 p-4 rounded-lg">
+                <img id="thumbnail" src="" alt="Video thumbnail" class="w-full md:w-48 rounded-lg object-cover shadow-lg">
+                <h2 id="video-title" class="text-xl font-semibold text-center md:text-left"></h2>
+            </div>
+            <div class="results-table-container max-h-60 overflow-y-auto">
+                <table class="w-full text-left table-auto">
+                    <thead class="sticky top-0 bg-gray-900/50 backdrop-blur-sm">
+                        <tr>
+                            <th class="p-3" data-lang-key="quality">Chất lượng</th>
+                            <th class="p-3" data-lang-key="format">Định dạng</th>
+                            <th class="p-3" data-lang-key="size">Kích thước</th>
+                            <th class="p-3 text-right" data-lang-key="download">Tải về</th>
+                        </tr>
+                    </thead>
+                    <tbody id="formats-list">
+                        <!-- Download links will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="text-center text-gray-400 text-sm pt-4 border-t border-white/10">
+            &copy; 2024 - Bản quyền thuộc về Trịnh Tấn Minh
+        </footer>
+    </main>
+
+<script>
+    // --- CONFIGURATION ---
+    // IMPORTANT: URL đã được sửa lại cho đúng.
+    const BACKEND_API_URL = 'https://minh-video-downloader.onrender.com/api/get_video_info';
+    
+    // --- LANGUAGE DICTIONARY ---
+    const translations = {
+        en: {
+            title: "Video Downloader",
+            subtitle: "Paste a YouTube or Facebook link",
+            buttonText: "Get Video Info",
+            errorTitle: "Error!",
+            quality: "Quality",
+            format: "Format",
+            size: "Size",
+            download: "Download",
+            downloadBtn: "Download",
+            error_invalid_url: "Invalid URL. Please check and try again.",
+            error_fetch_failed: "Could not retrieve video information. The server may be down or the URL is incorrect/private.",
+            error_server_error: "An internal server error occurred."
+        },
+        vi: {
+            title: "Trình Tải Video",
+            subtitle: "Dán link YouTube hoặc Facebook vào đây",
+            buttonText: "Lấy thông tin video",
+            errorTitle: "Lỗi!",
+            quality: "Chất lượng",
+            format: "Định dạng",
+            size: "Kích thước",
+            download: "Tải về",
+            downloadBtn: "Tải về",
+            error_invalid_url: "URL không hợp lệ. Vui lòng kiểm tra lại.",
+            error_fetch_failed: "Không thể lấy thông tin video. Máy chủ có thể đang tắt hoặc URL không chính xác/riêng tư.",
+            error_server_error: "Đã xảy ra lỗi phía máy chủ."
+        }
+    };
+
+    let currentLanguage = 'vi';
+
+    // --- DOM ELEMENTS ---
+    const form = document.getElementById('video-form');
+    const urlInput = document.getElementById('video-url');
+    const submitBtn = document.getElementById('submit-btn');
+    const loader = document.getElementById('loader');
+    const errorMessage = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    const resultsDiv = document.getElementById('results');
+    const thumbnailImg = document.getElementById('thumbnail');
+    const videoTitle = document.getElementById('video-title');
+    const formatsList = document.getElementById('formats-list');
+
+    // --- FUNCTIONS ---
+    function switchLanguage(lang) {
+        currentLanguage = lang;
+        document.documentElement.lang = lang;
+        document.querySelectorAll('[data-lang-key]').forEach(el => {
+            const key = el.getAttribute('data-lang-key');
+            if (translations[lang][key]) {
+                el.innerText = translations[lang][key];
+            }
+        });
+        
+        const viBtn = document.querySelector('.vi-btn');
+        const enBtn = document.querySelector('.en-btn');
+
+        if (lang === 'vi') {
+            viBtn.classList.add('bg-white', 'text-black');
+            enBtn.classList.remove('bg-white', 'text-black');
+        } else {
+            enBtn.classList.add('bg-white', 'text-black');
+            viBtn.classList.remove('bg-white', 'text-black');
+        }
+    }
+
+    function showLoader() {
+        loader.classList.remove('hidden');
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+
+    function hideLoader() {
+        loader.classList.add('hidden');
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    function showError(key) {
+        errorText.textContent = translations[currentLanguage][key] || "An unknown error occurred.";
+        errorMessage.classList.remove('hidden');
+        resultsDiv.classList.add('hidden');
+        resultsDiv.classList.remove('visible');
+    }
+
+    function hideError() {
+        errorMessage.classList.add('hidden');
+    }
+
+    function displayResults(data) {
+        thumbnailImg.src = data.thumbnail;
+        thumbnailImg.onerror = () => { thumbnailImg.src = 'https://placehold.co/600x400/0f0c29/FFFFFF?text=Preview' };
+        videoTitle.textContent = data.title;
+        formatsList.innerHTML = ''; 
+
+        if (!data.formats || data.formats.length === 0) {
+            showError('error_fetch_failed');
+            return;
+        }
+
+        data.formats.forEach(format => {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-white/10 hover:bg-white/5 transition-colors duration-200';
+            
+            const quality = format.quality || 'Audio';
+            const size = format.size ? (format.size / 1024 / 1024).toFixed(2) + ' MB' : 'N/A';
+            
+            row.innerHTML = `
+                <td class="p-3">${quality}</td>
+                <td class="p-3 uppercase">${format.ext}</td>
+                <td class="p-3 text-gray-300">${size}</td>
+                <td class="p-3 text-right">
+                    <a href="${format.url}" target="_blank" download class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg text-sm inline-block transition-transform duration-200 hover:scale-105">
+                        ${translations[currentLanguage].downloadBtn}
+                    </a>
+                </td>
+            `;
+            formatsList.appendChild(row);
+        });
+
+        resultsDiv.classList.remove('hidden', 'opacity-0');
+        setTimeout(() => resultsDiv.classList.add('visible'), 10);
+    }
+
+    // --- EVENT LISTENER ---
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const videoUrl = urlInput.value.trim();
+
+        if (!videoUrl) return;
+
+        showLoader();
+        hideError();
+        resultsDiv.classList.add('hidden', 'opacity-0');
+        resultsDiv.classList.remove('visible');
+
+
+        try {
+            const response = await fetch(BACKEND_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: videoUrl }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                showError(data.error || 'error_server_error');
+            } else {
+                displayResults(data);
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
+            showError('error_fetch_failed');
+        } finally {
+            hideLoader();
+        }
+    });
+    
+    // Initialize language on page load
+    switchLanguage('vi');
+</script>
+
+</body>
+</html>
